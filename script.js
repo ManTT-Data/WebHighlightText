@@ -95,16 +95,63 @@ function handleTextSelection() {
 }
 
 // Hàm thêm highlight vào box
+let highlightedTexts = '';
+let textPairs = [];
+
 function addHighlight(text) {
-    const highlightedText = document.getElementById('highlightedText');
-    const highlightP = document.createElement('p');
-    highlightP.textContent = text;
-    highlightedText.appendChild(highlightP);
+    highlightedTexts = text;
+    textPairs.push({ highlighted: text, translated: '' });
+    updateTextBoxes();
+    
+    // Gọi API để dịch văn bản
+    translateHighlightedText(text);
 }
 
-// Thêm event listener cho nút Clean
+async function translateHighlightedText(text) {
+    try {
+        const response = await fetch('http://localhost:8000/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                output_language: 'Vietnamese'
+            }),
+        });
+        const result = await response.json();
+        // Cập nhật văn bản đã dịch
+        textPairs[textPairs.length - 1].translated = result.translated_text;
+        updateTextBoxes();
+    } catch (error) {
+        console.error('Error translating text:', error);
+    }
+}
+
+function updateTextBoxes() {
+    const highlightedTextElement = document.getElementById('highlightedText');
+    const translatedTextElement = document.getElementById('translatedText');
+    
+    highlightedTextElement.innerHTML = '';
+    translatedTextElement.innerHTML = '';
+    
+    textPairs.forEach((pair, index) => {
+        const highlightDiv = document.createElement('div');
+        highlightDiv.className = 'text-pair';
+        highlightDiv.innerHTML = `<p class="highlighted">${pair.highlighted}</p>`;
+        highlightedTextElement.appendChild(highlightDiv);
+        
+        const translateDiv = document.createElement('div');
+        translateDiv.className = 'text-pair';
+        translateDiv.innerHTML = `<p class="translated">${pair.translated || 'Translating...'}</p>`;
+        translatedTextElement.appendChild(translateDiv);
+    });
+}
+
+// Cập nhật hàm Clean để xóa cả hai box và reset mảng textPairs
 document.getElementById('cleanHighlights').addEventListener('click', function() {
-    document.getElementById('highlightedText').innerHTML = '';
+    textPairs = [];
+    updateTextBoxes();
 });
 
 // Hàm tải và hiển thị PDF
