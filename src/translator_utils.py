@@ -9,6 +9,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
+import mongodb
 import sys
 import io
 
@@ -53,6 +54,7 @@ input = "It performs mathematical calculations and logical operations at high sp
 def translate(output_language, input):
     result = rag_chain_trans.invoke({"output_language": output_language, "input": input})
     answer = result["answer"]
+    mongodb.save_history(input, answer)
     return answer
 
 def definition(output_language, sentence, input):

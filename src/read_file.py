@@ -82,5 +82,3 @@ def load_db():
         embeddings=embeddings
     )
     return vectorstore
-
-load_db()
